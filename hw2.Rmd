@@ -1,0 +1,169 @@
+---
+title: "HW2"
+author: "zhongyun zhang"
+date: "2020/4/24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+#a) 
+The standard error is 28.64585, the estimate of variance is 820.5847. The coefficient of determination is 0.816477. 
+The regression line is Age = 65.52716 + 30.32389 * Length, so with each unit increase in age, length is estimated to increase by about 30.32389.
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126")
+wblake <- read.csv("wblake.csv", header=TRUE,sep = ",")
+#View(wblake)
+x=wblake$Age
+y=wblake$Length
+n = length(x)
+
+xbar = mean(x)
+ybar = mean(y)
+Sxx = sum((x - xbar)^2)
+Syy = sum((y - ybar)^2)
+Sxy = sum((x - xbar)*(y - ybar))
+r = Sxy/sqrt(Sxx*Syy)
+#slope
+b1 = r*sqrt(Syy/Sxx)
+b1
+#y-intercept
+b0 = ybar - b1*xbar
+b0
+yhat = b0 + b1*x
+#variance
+err = y - yhat
+sigma_2hat=sum (err^2) / (n-2) 
+sigma_2hat
+#standard errors
+sigma_hat=sqrt(sigma_2hat)
+sigma_hat
+#total sum of squars
+ssto = sum((y - ybar)^2)
+#error sum of squares
+sse = sum((y - yhat)^2)
+#regression sum of squares
+ssr = sum((yhat - ybar)^2)
+#Coefficient of Determination
+r2 = ssr/ssto
+r2
+```
+
+#b)
+We are 99% confident that b1 falls between 28.54465 mm and 32.10313 mm.
+(We are 99% confident that for every increasing unit in our predictor Age, a small mouth bass lenth will increase between 28.54465 mm and 32.10313 mm)
+```{r}
+# standard errors for b1
+se_b1 = sigma_hat/sqrt(Sxx)
+se_b1
+#t percentile given alpha = .01
+#t score
+t_pct = qt(p = 1-0.01/2, df = n - 2)
+#99 percent confidence interval for b1
+ci_b1_99 = b1 + c(-1, 1)*t_pct*se_b1
+ci_b1_99
+#c(-1,1)
+```
+
+#c)
+At age 1, the predictied lenth for small mouth bass is 95.85105mm. We are 99% confident that at age 1, the predictied lenth for small mouth bass lies between 21.43775mm and 170.26436mm.
+```{r}
+#99 percent prediction interval at age 1.
+y_new_1 = b0+b1
+y_new_1
+pi_age1 = y_new_1 + c(-1, 1) * t_pct * sigma_hat * sqrt(1+(1/n)+((1-xbar)^2)/Sxx)
+pi_age1
+#yh=b0+b1*1
+#yh
+#pi_b1_99=yh+c(-1,1)*sigma_hat*sqrt(1+(1/n)+(((1-xbar)^2)/Sxx)) 
+#pi_b1_99
+```
+
+##Problem 2
+
+#a)
+The standard error is 4.017114, the estimate of variance is 16.1372. The coefficient of determination is 0.2407957. 
+The regression line is dheight = 29.917437 + 0.541747 * mheight, so with each unit increase in mother's height, daughter's height is estimated to increase by about 0.541747
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw1/hw1 datasets")
+Heights <- read.table("Heights.csv", header=TRUE,sep = ",")
+#data(Heights)
+x=Heights$mheight
+y=Heights$dheight
+plot(x,y,xlab='mheight',ylab='dheight')
+xbar=mean(x)
+ybar=mean(y)
+Sxx=sum((x-xbar)^2)
+Syy = sum((y - ybar)^2)
+Sxy = sum((x - xbar)*(y - ybar)) 
+#correlation coefficient between x and y
+r = Sxy/sqrt(Sxx*Syy)
+#slope
+b1 = r*sqrt(Syy/Sxx)
+#y-intercept
+b0 = ybar - b1*xbar
+yhat = b0 + b1*x
+#variance
+err = y - yhat
+sigma_2hat=sum (err^2) / (n-2) 
+sigma_2hat
+#standard errors
+sigma_hat=sqrt(sigma_2hat)
+sigma_hat
+#total sum of squars
+ssto = sum((y - ybar)^2)
+#error sum of squares
+sse = sum((y - yhat)^2)
+#regression sum of squares
+ssr = sum((yhat - ybar)^2)
+#Coefficient of Determination
+r2 = ssr/ssto
+r2
+```
+
+#b)
+bo is the prediction of daughter's height(29.917437) when mother's height is 0. b1 is the change is mean height(0.541747) of daughter when mother's height increase for one unit.
+
+#c)
+The 99% prediction interval for a daughter whose mother is 64 inches tall is [58.74045 70.43805].
+
+```{r}
+fit=lm(y~x)
+new = data.frame(x = 64)
+ans = predict(fit, new, se.fit = TRUE, interval = "prediction", level = 0.99, type = "response")
+ans$fit
+
+pi = (ans$fit)[2:3]
+pi
+```
+
+##Problem3
+d)
+```{r}
+n3=100
+x3=seq(0,1,length=n3)
+y3=1+2*x3+rnorm(n3,0,1)
+ones=seq(1,1,length=n3)
+X3=matrix(c(ones,x3),ncol=2)
+Y3=matrix(y3, nrow=n3)
+b3=solve(t(X3)%*%X3)%*%t(X3)%*%Y3
+b0
+b1
+```
+```
+
+##Problem4
+#a)
+For points above the y = x line, the rice price in 2009 was more than rice price in 2003. while for points below the line, price in 2009 was less than price in 2003.
+
+#b)
+Vilnius had the largest increase in rice price, while Mumbai had the largest decreae in rice price.
+
+#c)
+Fitting simple linear regression to the figure in this problem is not likely to be appropriate since there are not enough correlation between these rice2003 and rice2009. Moreover, data are lied in a small area with some extreme outliers such as Mumbai, Nairobi and Seoul which does not follow the pattern of simple linear regression model And the deviations of the data from the line are quite high.
+
+#d)
+This graph is more sensibly summarized with a linear regression, since the appearance of plots look like linear, which data are gethering around the regression line. Moreover, the errors seems to be normally distributed.

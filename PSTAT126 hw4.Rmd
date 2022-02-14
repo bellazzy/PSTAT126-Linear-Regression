@@ -1,0 +1,89 @@
+---
+title: "PSTAT126 HW4"
+author: "zhongyun zhang"
+date: "2020/5/24"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+# a)
+```{r}
+#install.packages('alr4')
+library("alr4")
+attach(water)
+#View(water)
+pairs(BSAAM~OPBPC + OPRC + OPSLAKE, data=water)
+dat <- data.frame(BSAAM, OPBPC, OPRC, OPSLAKE)
+cor(dat)
+```
+
+Based of the scatterplot matrix, our correlation values will be large and positive for all variables. For each variable, correaltion value is really high and approximate to 1. Form the result, we see that OPSLAKE and OPBPC have the highest correlation.
+
+# b)
+```{r}
+summary(lm(BSAAM~OPBPC))
+summary(lm(BSAAM~OPBPC+OPRC))
+summary(lm(BSAAM~OPBPC+OPRC+OPSLAKE))
+```
+
+Based on Pr(>|t|) value we got for each summary, we can calculate if we are going to include certain predictorto our model or not. If Pr(>|t|) value is small enough, then including the corresponding predictor makes the model better.
+For the first summary, since p-value is low enough to reject the null, which means OPBPC is okay to bring in as a predictor in the model. Similarly, on the second summary, p-values are low enough to conclude that we can use both OPBPC and OPRC as predictors in our model. For the third summmary, p-values of OPRC and OPSLAKE are low compared to OPBPC's one. So, we suggest taking out OPBPC from our model, and leave the rest of the two predictors in our model.
+
+# c) 
+```{r}
+anova(lm(BSAAM ~ OPBPC + OPRC + OPSLAKE))
+anova(lm(BSAAM ~ OPBPC + OPRC))
+```
+
+SSR(OPSLAKE|OPBPC,OPRC) = 6.4165e+08
+SSE(OPBPC,OPRC) = SSR(OPRC|OPBPC) + SSR(OPBPC) = 2.5616e+09 + 2.1458e+10 = 24019600000
+
+## PROBLEM 2
+# a)
+```{R}
+data(lathel)
+library(MASS)
+y_life = lathe1$Life
+x1_speed = lathe1$Speed
+x2_feed = lathe1$Feed
+fit1 = lm(y_life ~ x1_speed + x2_feed + I(x1_speed ^ 2) + I(x2_feed ^ 2) + x1_speed * x2_feed)
+boxcox(y_life ~ x1_speed + x2_feed + I(x1_speed ^ 2) + 
+         I(x2_feed ^ 2) + I(x1_speed * x2_feed), 
+       lambda = seq(-1, 1, length = 10))
+#boxcox(y_life ~ x1_speed + x2_feed + I(x1_speed ^ 2) + 
+#         I(x2_feed ^ 2) + I(x1_speed * x2_feed), 
+#       lambda = seq(-1, 1, length = 10))
+```
+Our lambda from boxcox is close enough to 0, which is taking natural log to the response.
+
+# b)
+```{r}
+log_life = log(y_life)
+model.reduced = lm(log_life ~ 1)
+model.full = lm(log_life ~ x1_speed + x2_feed + I(x1_speed ^ 2) + I(x2_feed ^ 2) + I(x1_speed * x2_feed))
+anova(model.reduced, model.full)
+```
+
+H_0: all the coefficients of the predictors(slope parameters) are zero.\
+H_a: not all the coefficients are zero.
+
+Since our p-value is significantly close to 0, we reject the null, and not all the slopes are zero in this log transformed response model.
+
+# c)
+
+Since we are only comparing coefficients related to Speed rate in the null hypothesis, this test is about how significant Speed rate predictor is to this model. 
+
+# d)
+```{r}
+model.reduced = lm(log_life ~ x2_feed + I(x2_feed ^ 2))
+model.full = lm(log_life ~ x1_speed + x2_feed + I(x1_speed ^ 2)
+                + I(x2_feed ^ 2) + I(x1_speed * x2_feed))
+#model.full = lm(log_life ~ x1_speed + x2_feed + I(x1_speed ^ 2)
+#                + I(x2_feed ^ 2) + I(x1_speed * x2_feed))
+anova(model.reduced, model.full)
+```
+Since our p-value is close to 0, we reject the null hypothesis, and Speed rate predictor is important to the model with log life as response.

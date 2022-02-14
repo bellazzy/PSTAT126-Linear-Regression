@@ -1,0 +1,66 @@
+---
+title: "PSTAT126 project"
+author: "Mark Zhao & zhongyun zhang"
+date: "2020/5/13"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+install.packages(pandoc)
+
+library(knitr)
+library(readxl)
+plant <- read_excel("~/Desktop/2020 Spring/PSTAT126/CCPP/plant.xlsx")
+#View(plant)
+x_ap=plant$AP
+x_rh=plant$RH
+x_v=plant$V
+x_t=plant$AT
+y=plant$PE
+
+fit = lm(y ~ x_ap)
+plot(fit)
+fit1 = lm(y ~ x_rh)
+plot(fit1)
+fit2 = lm(y ~ x_v)
+plot(fit2)
+fit3 = lm(y ~ x_t)
+plot(fit3)
+
+new=cbind(x_ap,x_rh,x_v,x_t)
+pairs(new)
+```
+
+```{r}
+mod_0=lm(y~0)
+mod_full = lm(y~x_ap+x_rh+x_v+x_t) 
+#summary(mod_full)
+step(mod_0, scope = list(lower = mod_0, upper = mod_full))
+```
+```{r}
+mod.aic=lm(y~x_ap + x_t + x_v + x_rh)
+summary(mod.aic)
+```
+
+```{r}
+mod.final=lm(y~x_ap + x_t + x_v + x_rh)
+summary(mod.final)
+```
+
+```{r}
+resid = residuals(mod.final)
+fittd = fitted(mod.final)
+plot(fittd, resid, xlab = 'Fitted Y', ylab = 'Residuals') 
+title('Residuals v.s. Fitted Vales', cex.main=2.0)
+abline(h=0)
+```
+
+```{r}
+qqnorm(residuals(mod.final))
+qqline(residuals(mod.final))
+
+```

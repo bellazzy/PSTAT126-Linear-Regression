@@ -1,0 +1,188 @@
+---
+title: "PSTAT126 HW5"
+author: "zhongyun zhang"
+date: "2020/6/6"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## PROBLEM 1
+# a) 
+```{r}
+#install.packages("faraway")
+library("faraway")
+data(divusa)
+#View(divusa)
+x1 = divusa$year
+x2 = divusa$unemployed
+x3 = divusa$femlab
+x4 = divusa$marriage
+x5 = divusa$birth
+x6 = divusa$military
+y = divusa$divorce
+
+mod.reduced = lm(y ~ 1)
+mod.full = lm(y ~ x1+x2+x3+x4+x5+x6)
+step(mod.reduced, scope = list(lower = mod.reduced, 
+                        upper = mod.full))
+mod.final = lm(y ~ x1+x3+x4+x5+x6)
+summary(mod.final)
+```
+
+The predictors which will be included in the model will be x1,x3,x4,x5,x6. Which means that year, femlab, marriage, birth and military are significant to our final model.
+
+# b)
+```{r}
+library(leaps)
+mod1 =regsubsets(cbind(x1,x2,x3,x4,x5,x6), y)
+summary.mod1 = summary(mod1)
+summary.mod1$which
+summary.mod1$rsq
+
+summary.mod1$adjr2
+rss = summary.mod1$rss
+n = length(y)
+mses = c(rss[1]/(n-2), rss[2]/(n-3), rss[3]/(n-4), rss[4]/(n-5), rss[5]/(n-6))
+mses
+```
+
+Base on the largest adjusted R^2 value and smallest MSE criteria, the best model is the model with 5 predictors x1,x3,x4,x5,x6.
+
+# c)
+```{r}
+summary.mod1$cp
+summary.mod1$which
+```
+
+According to the Cp criterion, the model with x1,x3,x4,x5,x6 is a valid model.
+
+## PROBLEM 2
+# a)
+
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw5 datasets")
+job <- read.csv("Job proficiency.csv", header=TRUE,sep = ",")
+#View(job)
+pairs(job)
+cor(job)
+```
+As we can see from the scatterplot, x3 and x4 have a positive linear relationship, x4 and y have a positive linear relationship, x3 and y have a positive linear relatioship.
+
+# b) & c)
+```{r}
+mod2 = regsubsets(cbind(job$x1,job$x2,job$x3,job$x4), job$y)
+summary.mod2 = summary(mod2)
+summary.mod2$which
+
+summary.mod2$rsq
+
+summary.mod2$adjr2
+rss = summary.mod2$rss
+n = length(y)
+mses = c(rss[1]/(n-2), rss[2]/(n-3), rss[3]/(n-4))
+mses
+summary.mod2$cp
+```
+
+For R^2 criterion, our final model should include x1 and x3.
+While for the mse, we should choose the model with lowest mse and highest R^2, our final model should be including x1,x3,x4.
+For mallows' Cp, we would also choose the model with predictors x1,x3,x4.
+
+## PROBLEM 3
+# a)
+```{r}
+mod0 = lm(y ~ 1, data = job)
+add1(mod0, ~.+x1+x2+x3+x4, data = job, test = 'F')
+```
+
+As we can see, we will first include x3 in our model since it has the smallest p-value.
+
+```{r}
+mod1 = update(mod0, ~.+x3, data = job)
+add1(mod1, ~.+x1+x2+x4, test = 'F')
+mod2 = update(mod1, ~.+x1)
+summary(mod2)
+```
+
+The F-test p-value for x1 is smallest, so we bring in x1. We also need to double check if bring x1 in affected x3. The p-value shows for x3 shows that adding x1 to the model doesn't affect the significance of x3.
+
+```{r}
+add1(mod2, ~.+x2+x4, test = 'F')
+mod3 = update(mod2, ~.+x4)
+summary(mod3)
+```
+
+Now, f-test p-value for x4 is the smallest, so we bring in x4. Then we check if x4 will affect the significance on x1 and x3. It doesn't affected. So, we include x4 to our model.
+
+```{r}
+add1(mod3, ~.+x2, test = 'F')
+```
+
+The f-test p-value for x2 is greater than 0.05 so we are not going to include x2 to our model.
+
+```{r}
+mod.fin = lm(y ~ x3 + x1+ x4, data = job)
+summary(mod.fin)
+```
+
+So, for the final model, we will include predictors x1,x3,x4.
+
+# b)
+The conclusion we get for best subset obtained in part (a) is the same as the best subset we got from part (b) of Q2.
+
+## PROBLEM 4
+# a)
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw5 datasets")
+brand <- read.csv("brand preference.csv", header=TRUE,sep = ",")
+attach(brand)
+#View(brand)
+fit.all = lm(y ~ x1 + x2, data = brand) 
+rstudent(fit.all)
+```
+
+It seems like there are no data points whose value larger then 3, so we would conclude that there is not outlying Y observations.
+
+# b)
+```{r}
+hatvalues(fit.all)
+a = hatvalues(fit.all)
+sum(hatvalues(fit.all))
+#which(a == max(a))
+b = 3*3/16
+b
+```
+
+From the above output, we see that the diagonal elements take two distinct values 0.2375 and 0.1375.
+
+# c)
+There is not an observations with  high leverage, since our observations are all smaller than 3*p/n.
+
+## PROBLEM 5
+
+```{r}
+dat3 = data.frame(x = c(4,1,2,3,3,4), y = c(16,5,10,15,13,22))
+X = dat3$x
+Y = dat3$y
+print("matrix X:")
+X = cbind(c(1,1,1,1,1,1), X)
+X
+print("column vector b:")
+b = solve(t(X)%*%X)%*%t(X)%*%Y
+b
+print("hatmatrix H:")
+H = X%*%solve(t(X)%*%X)%*%t(X)
+H
+```
+
+## PROBLEM 6
+With high alpha, there will be more variables which is significant to the model. Then we can bring in more variables than we brought with a smaller alpha value. High alpha will give wider permission to add more varibles into model which may increase R square. 
+
+
+
+
+
+

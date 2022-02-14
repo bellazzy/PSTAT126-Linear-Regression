@@ -1,0 +1,255 @@
+---
+title: "PSTAT126 HW3"
+author: "zhongyun zhang"
+date: "2020/5/9"
+output:
+  pdf_document:
+    fig_height: 3
+    fig_width: 3
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+#a)
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw3 datasets")
+UN11 <- read.csv("UN11.csv", header=TRUE,sep = ",")
+#View(UN11)
+y <- UN11$fertility
+x <- UN11$ppgdp
+fit = lm(y ~ x)
+plot(x, y, xlab="ppgdp",ylab="fertility",main="fertility v.s. ppgdp")
+abline(fit, col = 'red')
+summary(fit)
+```
+
+From the graph, we can see that points are scattered far from the line and does not show any linear pattern. As we can see from the summary we can see that the r square for this model is 0.1936, which mean that the it is 19.36% of varation in fertility is explained by the variation in predictor gggdp, which is not strong enough. So this model is not good.
+
+#b)
+```{r}
+xbar = mean(x)
+ybar = mean(y)
+
+fit = lm(y ~ x)
+yhat = fitted(fit)
+e = y - yhat
+plot(yhat, e, xlab = 'Fitted Values', ylab = 'Residual', main = 'Residual vs Fit')
+abline(h = 0, lty = 2)
+```
+
+The residual vs fit plot is not well behaved. As we know that a well-behaved residual vs fit plot needs to have first, residuals "bounce randomly" around the 0 line. However we can see from our plot that plots do not actually randomly scattered around 0 line. So that it doesn't reasonably show the relationship is linear. Moreover, the residuals should form a "horizontal band" around 0. but does not shown on our graph. So the variances of error terms are not equal. Last,  ther are some outliers in the graph. In this way, this plot is not well behaved.
+
+#c)
+```{r}
+qqnorm(e)
+qqline(e)
+```
+
+The normality assumption does not met, since the qq plot does not show a approximately linear line which error terms are not normally distributed.
+
+d)
+```{r}
+shapiro.test(e)
+```
+
+We can see from the data that p-value is 2.708e-08, which is smaller than 0.05.
+We can conclude that we are 95% confident t.at we reject the null hypothesis which the variable is normally distributed. Which support my conclusion that the residuals are not normally distrubuted.
+
+## Problem 2
+#a)
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw3 datasets")
+teengamb <- read.csv("teengamb.csv", header=TRUE,sep = ",")
+#View(teengamb)
+
+x1=teengamb$sex
+x2=teengamb$status
+x3=teengamb$income
+x4=teengamb$verbal
+y=teengamb$gamble
+fit1 = lm(y~x1+x2+x3+x4)
+
+avgStatus <- mean(x2)
+avgIncome <- mean(x3)
+avgVerbal <- mean(x4)
+
+new1 <- data.frame(x1 = 0, x2 = avgStatus, x3 = avgIncome, x4 = avgVerbal)
+ci_avg <- predict(fit1, new1, interval = 'confidence', level = .95)
+ci_avg
+```
+
+Therefore, we are 95% confident that the men with average (given the data) status, income and verbal score would gamble has confidence interval for the mean amount would fall between 18.78277 and 37.70227 per year.
+
+#b)
+```{r}
+maxStatus <- max(x2)
+maxIncome <- max(x3)
+maxVerbal <- max(x4)
+## error
+new2 <- data.frame(x1=0,x2 = maxStatus, x3 = maxIncome, x4 = maxVerbal)
+ci_max <- predict(fit1, new2, interval = 'confidence', level = .95)
+ci_max
+```
+
+Therefor, we are 95% confident that the men with maximal values (for this data) of status, income and verbal score would gamble has mean 71.30794, and would fall in the confidencec interval between 42.23237 and 100.3835. Confidence interval for men with maximal values is wider than average value. Since the gamble amount for maximal values should be greater than the gamble amount for average data values. So its standard error and width for confident interval should be wider for men with maximal values.
+
+#c)
+```{r}
+fit2 <- lm(sqrt(y) ~ x1 + x2 + x3 + x4)
+## error
+pi_log_avg <- predict(fit2, new1, interval = 'predict', level = .95)
+pi_log_avg
+# don't forget to give answer in original units of the response(^2)
+pi_lower <- pi_log_avg[2]^2
+pi_upper <- pi_log_avg[3]^2
+pi_lower
+pi_upper
+```
+
+We are 95% confidnet that the  men with average (given the data) status, income and verbal score would fall between 0.06004216 and 69.6237.
+
+## Problem 3
+#a)
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw3 datasets")
+sat <- read.csv("sat.csv", header=TRUE,sep = ",")
+#View(sat)
+y <- sat$total
+x1_expend <- sat$expend
+x2_takers <- sat$takers
+
+reduced <- lm(y ~ 1)
+full <- lm(y ~ x1_expend + x2_takers)
+anova(reduced, full)
+```
+H0: βexpend = βtakers = 0
+
+From anova table we can see that the p-value for F-test is 2.2e-16, which is less than 0.05, reject h0. Therefore, we are 95% confident that the statement 
+βexpend = βtakers = 0 is false. There should be at least one predictor from have an effect on the response.
+
+## Problem 4
+#a)
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126/hw3 datasets")
+trade.union <- read.csv("trade.union.csv", header=TRUE,sep = ",")
+#View(trade.union)
+
+y_wage <- trade.union$wage
+x1_age <- trade.union$age
+x2_membership <- trade.union$union.member
+
+plot(x1_age,y_wage,xlab = "age", ylab = "wage", pch = 10, main = "wage against age", col = 1:2)
+legend("topright", col = 1:2, pch = 10, legend = c("non-member","member"))
+```
+
+#b)
+```{r}
+fit = lm(y_wage ~ x1_age+x2_membership) 
+yhat = fitted(fit)
+e = y_wage - yhat
+par(mfrow=c(2,2))
+plot(yhat, e, xlab = 'Fitted Values', ylab = 'Residual', main = 'Residual vs Fitted Values') 
+abline(h = 0, lty = 2)
+hist(e, xlab = 'Residuals', main = 'Histogram of Residuals')
+qqnorm(e)
+qqline(e)
+```
+
+As we can see from graphs above, the residuals are not normally distributed and  histogram of residuals is quite skewed, and qqplot does not show a linear relationship. In this way we need to do trasporform.
+
+```{r}
+fit.new = lm(log(y_wage) ~ x1_age+x2_membership) 
+yhat.new = fitted(fit.new)
+e.new = log(y_wage) - yhat.new
+par(mfrow=c(2,2))
+plot(yhat.new, e.new, xlab = 'Fitted Values', ylab = 'Residual', main = 'Residual vs Fitted Values') 
+abline(h = 0, lty = 2)
+hist(e.new, xlab = 'Residuals', main = 'Histogram of Residuals')
+qqnorm(e.new)
+qqline(e.new)
+```
+
+Now, from these graphs we can see that  residual vs fit plot is more randomly distributed, qqplot forms a linear line, and histogram shows a normally distributed shape. 
+
+#c)
+```{r}
+#Fit a linear model regressing transformed wage on age and union membership.
+fit.new = lm(log(y_wage) ~ x1_age+x2_membership) 
+yhat.new = fitted(fit.new)
+e.new = log(y_wage) - yhat.new
+yhat0 = yhat.new[x2_membership == 0] 
+yhat1 = yhat.new[x2_membership == 1]
+plot(x1_age, log(y_wage), col =x2_membership+2,pch=x2_membership+1, xlab = 'age', ylab = 'Log(wage)') 
+lines(x1_age[x2_membership == 0], yhat0, col = 'red')
+lines(x1_age[x2_membership == 1], yhat1, col = 'green')
+legend('topleft', bty = 'n', col = c('red', 'green'), lty = c(1, 1), c('non-member', 'member'))
+```
+As we can see from the graph, the logarithm of the wage is positively linearly related to age for both non-members and members. As the age increases the expected log of wage increases, which means that the expected wage will increase. The graph also show that wage for people who is the membership of union would differ from those who are not. 
+
+#d)
+```{r}
+reduced=lm(log(y_wage) ~ x1_age)
+full1=lm(log(y_wage) ~ x1_age+x2_membership)
+anova(reduced, full1)
+```
+H0:βage=βmember=0 v.s. Ha:at least one not equal to 0
+
+As se can see from the Anova table, the p-value for the test is 1.068e-05<0.05, reject h0. Therefore, we are 95% confident that there are at least one predictor has value different from 0. Which means that at least one predictor(age, membership) has effect on wage.
+
+## Problem 5
+#a)
+```{r}
+y=c(16, 5, 10, 15, 13, 22)
+Y=matrix(y, nrow = 6, ncol =1)
+x=c(4, 1, 2, 3, 3, 4)
+X= cbind(seq(1,length=6,by=0),x)
+#a)
+tYY=t(Y)%*%Y
+tYY
+
+#b)
+tXX=t(X)%*%X
+tXX
+
+#c)
+tXY=t(X)%*%Y
+tXY
+
+#d)
+b=solve(tXX)%*%tXY
+b
+# b0 is 0.4390244, b1 is 4.6097561
+
+```
+
+## Problem 6
+```{r}
+setwd("~/Desktop/2020 Spring/PSTAT126")
+forestfire <- read.csv("forestfires.csv", header=TRUE,sep = ",")
+#View(forestfire)
+head(forestfire)
+```
+We chose our data from UC Irvine Machine Learning Repository, called forest fires. It aims to predict the burned area of forest fires, in the northeast region of Portugal. It has 517 instances and 13 attributes.
+1. X - x-axis spatial coordinate within the Montesinho park map: 1 to 9 
+2. Y - y-axis spatial coordinate within the Montesinho park map: 2 to 9 
+3. month - month of the year: 'jan' to 'dec' 
+4. day - day of the week: 'mon' to 'sun' 
+5. FFMC - FFMC index from the FWI system: 18.7 to 96.20 
+6. DMC - DMC index from the FWI system: 1.1 to 291.3 
+7. DC - DC index from the FWI system: 7.9 to 860.6 
+8. ISI - ISI index from the FWI system: 0.0 to 56.10 
+9. temp - temperature in Celsius degrees: 2.2 to 33.30 
+10. RH - relative humidity in %: 15.0 to 100 
+11. wind - wind speed in km/h: 0.40 to 9.40 
+12. rain - outside rain in mm/m2 : 0.0 to 6.4 
+13. area - the burned area of the forest (in ha): 0.00 to 1090.84 
+
+The response should be temp
+Predictors should be
+RH,wind, rain
